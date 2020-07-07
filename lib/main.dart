@@ -1,11 +1,15 @@
+import 'package:astron_bags/Screens/adminHomePage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-Color astronColor=Color.fromRGBO(237, 47, 89,1);
-
-void main(){
+Color astronColor = Color.fromRGBO(237, 47, 89, 1);
+FirebaseAuth mauth;
+FirebaseUser currentuser;
+void main() {
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
     home: SplashScreen(),
+    theme: ThemeData(fontFamily: 'Raleway'),
   ));
 }
 
@@ -14,26 +18,27 @@ class SplashScreen extends StatefulWidget {
   _SplashScreenState createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
-  
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
   AnimationController _animationController;
   Tween _tween;
   Animation _animation;
 
-@override
+  @override
   void initState() {
-    // TODO: implement initState
+    mauth = FirebaseAuth.instance;
+    fetchuser();
     super.initState();
     _animationController =
-        AnimationController(vsync: this, duration: Duration(seconds: 2))
+        AnimationController(vsync: this, duration: Duration(seconds: 1))
           ..addListener(() {
             setState(() {});
           })
           ..addStatusListener((status) {
             setState(() {
               if (status == AnimationStatus.completed) {
-                // Navigator.push(context,
-                //     MaterialPageRoute(builder: (context) => LineUp()));
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => AdminHomePage()));
               }
             });
           });
@@ -42,7 +47,16 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
     _animationController.forward();
   }
-  
+
+  fetchuser() async {
+    currentuser = await mauth.currentUser();
+    if (currentuser == null) {
+      mauth.signInAnonymously().then((value)async {
+        currentuser = await mauth.currentUser();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var screenwidth = MediaQuery.of(context).size.width;
@@ -58,19 +72,29 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             height: 400.0,
             decoration: BoxDecoration(
                 image: DecorationImage(
-                    image: AssetImage('images/AstronLogo.png'),fit: BoxFit.contain)),
+                    image: AssetImage('images/AstronLogo.png'),
+                    fit: BoxFit.contain)),
           ),
           Container(
-            margin: EdgeInsets.only(left:30.0),
+            margin: EdgeInsets.only(left: 30.0),
             height: 60.0,
             alignment: Alignment.center,
             width: _animation.value,
             decoration: BoxDecoration(
               color: astronColor,
-              border: Border.all(width: 1.0,color:astronColor),
+              border: Border.all(width: 1.0, color: astronColor),
               borderRadius: BorderRadius.circular(30.0),
             ),
-            child: _animation.value>150.0?Text('Loading...'.toUpperCase(),textAlign: TextAlign.center,style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold,letterSpacing: 3.0),):Offstage(),
+            child: _animation.value > 300.0
+                ? Text(
+                    'Finished...'.toUpperCase(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 3.0),
+                  )
+                : Offstage(),
           ),
         ],
       ),
