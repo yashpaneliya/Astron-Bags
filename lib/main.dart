@@ -9,7 +9,7 @@ void main() {
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
     home: SplashScreen(),
-    theme: ThemeData(fontFamily: 'Raleway'),
+    theme: ThemeData(fontFamily: 'Raleway', primaryColor: astronColor),
   ));
 }
 
@@ -30,14 +30,14 @@ class _SplashScreenState extends State<SplashScreen>
     fetchuser();
     super.initState();
     _animationController =
-        AnimationController(vsync: this, duration: Duration(seconds: 1))
+        AnimationController(vsync: this, duration: Duration(seconds: 2))
           ..addListener(() {
             setState(() {});
           })
           ..addStatusListener((status) {
             setState(() {
               if (status == AnimationStatus.completed) {
-                Navigator.push(context,
+                Navigator.pushReplacement(context,
                     MaterialPageRoute(builder: (context) => AdminHomePage()));
               }
             });
@@ -51,7 +51,7 @@ class _SplashScreenState extends State<SplashScreen>
   fetchuser() async {
     currentuser = await mauth.currentUser();
     if (currentuser == null) {
-      mauth.signInAnonymously().then((value)async {
+      mauth.signInAnonymously().then((value) async {
         currentuser = await mauth.currentUser();
       });
     }
@@ -63,17 +63,18 @@ class _SplashScreenState extends State<SplashScreen>
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            margin: EdgeInsets.only(top: 30.0, bottom: 70.0),
-            width: screenwidth,
-            height: 400.0,
-            decoration: BoxDecoration(
-                image: DecorationImage(
-                    image: AssetImage('images/AstronLogo.png'),
-                    fit: BoxFit.contain)),
+          Center(
+            child: Container(
+              width: screenwidth * 0.8,
+              height: 400.0,
+              decoration: BoxDecoration(
+                  image: DecorationImage(
+                      image: AssetImage('images/AstronLogo.png'),
+                      fit: BoxFit.contain)),
+            ),
           ),
           Container(
             margin: EdgeInsets.only(left: 30.0),

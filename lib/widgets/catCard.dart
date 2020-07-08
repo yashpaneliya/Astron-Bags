@@ -24,7 +24,7 @@ class _catCardState extends State<catCard> {
             children: [
               Container(
                 width: MediaQuery.of(context).size.width*0.4,
-                height: MediaQuery.of(context).size.height*0.2,
+                height: MediaQuery.of(context).size.height*0.17,
                 margin: EdgeInsets.only(top:10.0,bottom: 10.0),
                 child: Image.network(widget.imgLink),
               ),
