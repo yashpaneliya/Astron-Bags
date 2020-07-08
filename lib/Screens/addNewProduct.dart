@@ -13,13 +13,16 @@ class AddNewProduct extends StatefulWidget {
 }
 
 class _AddNewProductState extends State<AddNewProduct> {
+  final scafkey = GlobalKey<ScaffoldState>();
+
   FirebaseAuth mauth;
   var selectedCategory;
   File imagefile;
   final picker = ImagePicker();
   TextEditingController tc;
-  Uri url;
+  String url;
   var model;
+  bool load;
 
   Future getImage() async {
     final pickedFile = await picker.getImage(source: ImageSource.gallery);
@@ -29,6 +32,9 @@ class _AddNewProductState extends State<AddNewProduct> {
   }
 
   Future uploadImage() async {
+    setState(() {
+      load = true;
+    });
     if (this.imagefile == null) {
       getImage();
       uploadImage();
@@ -36,42 +42,42 @@ class _AddNewProductState extends State<AddNewProduct> {
       FirebaseStorage storage = FirebaseStorage.instance;
       StorageReference ref = storage.ref().child("$selectedCategory/$model");
       StorageUploadTask task = ref.putFile(imagefile);
-      // if (task.isComplete || task.isSuccessful) {
-
-      // }
-
-      url = await ref.getDownloadURL().then((value) {
-        print(url);
-        var map = <String, dynamic>{
-          'imgLink': url.toString(),
-          'model': model,
-        };
-        Firestore.instance
-            .collection(selectedCategory)
-            .document(model)
-            .setData(map)
-            .then((value) {
-          Navigator.pop(context);
-        });
-        return value;
+      StorageTaskSnapshot tasksnap = await task.onComplete;
+      String tempurl = await ref.getDownloadURL();
+      setState(() {
+        url = tempurl;
+      });
+      print(url);
+      var map = <String, dynamic>{
+        'imgLink': url.toString(),
+        'model': model,
+      };
+      Firestore.instance
+          .collection(selectedCategory)
+          .document(model)
+          .setData(map)
+          .then((value) {
+        Navigator.pop(context);
       });
     }
   }
 
   @override
   void initState() {
+    load = false;
     mauth = FirebaseAuth.instance;
     if (mauth.currentUser() == null) {
       mauth.signInAnonymously();
     }
     super.initState();
-    selectedCategory = "Select caategory";
+    selectedCategory = "Select category";
     tc = TextEditingController();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scafkey,
       appBar: AppBar(
         elevation: 0.0,
         backgroundColor: Colors.transparent,
@@ -159,6 +165,15 @@ class _AddNewProductState extends State<AddNewProduct> {
                     ),
                   ),
                 ),
+                Center(
+                  child: Visibility(
+                    visible: load,
+                    child: CircularProgressIndicator(
+                      backgroundColor: astronColor,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white)
+                    ),
+                  ),
+                ),
                 Container(
                   margin: EdgeInsets.only(
                       top: 20.0, left: 20.0, right: 20.0, bottom: 20.0),
@@ -171,6 +186,16 @@ class _AddNewProductState extends State<AddNewProduct> {
                     margin: EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
                     child: RaisedButton(
                       onPressed: () {
+                        if (tc.text.isEmpty) {
+                          scafkey.currentState.showSnackBar(SnackBar(
+                              content: Text('Please enter model number')));
+                          return;
+                        }
+                        if (selectedCategory == 'Select category') {
+                          scafkey.currentState.showSnackBar(SnackBar(
+                              content: Text('Please select a category')));
+                          return;
+                        }
                         uploadImage();
                       },
                       color: astronColor,
