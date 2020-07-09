@@ -1,11 +1,12 @@
+import 'dart:convert';
 import 'dart:io';
-
 import 'package:astron_bags/main.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+
 
 class AddNewProduct extends StatefulWidget {
   @override
@@ -20,9 +21,13 @@ class _AddNewProductState extends State<AddNewProduct> {
   File imagefile;
   final picker = ImagePicker();
   TextEditingController tc;
+  TextEditingController gptc;
+  TextEditingController optc;
   String url;
   var model;
   bool load;
+  var gprice;
+  var oprice;
 
   Future getImage() async {
     final pickedFile = await picker.getImage(source: ImageSource.gallery);
@@ -51,6 +56,8 @@ class _AddNewProductState extends State<AddNewProduct> {
       var map = <String, dynamic>{
         'imgLink': url.toString(),
         'model': model,
+        'gprice': gprice,
+        'oprice': oprice
       };
       Firestore.instance
           .collection(selectedCategory)
@@ -72,6 +79,8 @@ class _AddNewProductState extends State<AddNewProduct> {
     super.initState();
     selectedCategory = "Select category";
     tc = TextEditingController();
+    gptc = TextEditingController();
+    optc = TextEditingController();
   }
 
   @override
@@ -79,6 +88,10 @@ class _AddNewProductState extends State<AddNewProduct> {
     return Scaffold(
       key: scafkey,
       appBar: AppBar(
+        title: Text(
+          'Add New Product',
+          style: TextStyle(color: astronColor),
+        ),
         elevation: 0.0,
         backgroundColor: Colors.transparent,
         leading: IconButton(
@@ -153,6 +166,48 @@ class _AddNewProductState extends State<AddNewProduct> {
                   ),
                 ),
                 Container(
+                  margin: EdgeInsets.only(left: 20.0, right: 20.0, top: 10.0),
+                  child: TextFormField(
+                    controller: gptc,
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      gprice = gptc.text;
+                    },
+                    cursorColor: astronColor,
+                    decoration: InputDecoration(
+                      labelText: 'Gujarat price (in Rupees)',
+                      labelStyle: TextStyle(color: astronColor),
+                      focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: astronColor)),
+                      prefixIcon: Icon(
+                        Icons.attach_money,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.only(left: 20.0, right: 20.0, top: 10.0),
+                  child: TextFormField(
+                    controller: optc,
+                    onChanged: (value) {
+                      oprice = optc.text;
+                    },
+                    keyboardType: TextInputType.number,
+                    cursorColor: astronColor,
+                    decoration: InputDecoration(
+                      labelText: 'Other state price (in Rupees)',
+                      labelStyle: TextStyle(color: astronColor),
+                      focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: astronColor)),
+                      prefixIcon: Icon(
+                        Icons.attach_money,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
                   margin: EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
                   child: RaisedButton(
                     onPressed: () {
@@ -169,16 +224,16 @@ class _AddNewProductState extends State<AddNewProduct> {
                   child: Visibility(
                     visible: load,
                     child: CircularProgressIndicator(
-                      backgroundColor: astronColor,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white)
-                    ),
+                        backgroundColor: astronColor,
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(Colors.white)),
                   ),
                 ),
                 Container(
                   margin: EdgeInsets.only(
                       top: 20.0, left: 20.0, right: 20.0, bottom: 20.0),
                   width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height * 0.3,
+                  height: MediaQuery.of(context).size.height * 0.25,
                   child: imagefile != null ? Image.file(imagefile) : Offstage(),
                 ),
                 Center(
@@ -189,6 +244,16 @@ class _AddNewProductState extends State<AddNewProduct> {
                         if (tc.text.isEmpty) {
                           scafkey.currentState.showSnackBar(SnackBar(
                               content: Text('Please enter model number')));
+                          return;
+                        }
+                        if (gptc.text.isEmpty) {
+                          scafkey.currentState.showSnackBar(
+                              SnackBar(content: Text('Please enter price')));
+                          return;
+                        }
+                        if (optc.text.isEmpty) {
+                          scafkey.currentState.showSnackBar(
+                              SnackBar(content: Text('Please enter price')));
                           return;
                         }
                         if (selectedCategory == 'Select category') {

@@ -77,14 +77,16 @@ class _ProductsState extends State<Products> {
                   itemBuilder: (_, index) {
                     return GestureDetector(
                       onTap: () {
-                        Navigator.push(
+                        Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
                             builder: (context) => ProductDetails(
                               product: ProductModel(
                                   snapshot.data[index].data['model'].toString(),
                                   snapshot.data[index].data['imgLink'],
-                                  widget.category),
+                                  widget.category,
+                                  snapshot.data[index].data['gprice'],
+                                  snapshot.data[index].data['oprice'],),
                             ),
                           ),
                         );
